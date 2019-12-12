@@ -10,11 +10,9 @@
  * 
  * <<<<# This program read bank customers list from csv file and create two new files #>>>>
  * 
- * First file is all clients sorted from smallest to biggest by bank balance and in the end of list is number of clients.
+ * First file is all clients sorted from smallest to biggest by bank balance and in the begin of list is number of clients.
  * 
- * Second file is only clients names and balance sorted from smallest to biggest 
- * then balance is bigger then input double number and in the end of list is number of clients with bigger balance
- * 
+ * Second file is only for one client what you searching.
  * 
  */
 
@@ -23,8 +21,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-// #define sizeOfArray 1000
-#define fileName "data1.csv"
+
+#define fileName "data2.csv"
 int sizeOfArray;
 /**
  * @brief Structure
@@ -39,7 +37,7 @@ struct personalData
 struct bank_custumers_details
 {
     char name[20];
-    char IBAN[20];
+    char IBAN[30];
     double balance;
     struct personalData pData;
 };
@@ -48,7 +46,8 @@ struct bank_custumers_details
 void readFile(struct bank_custumers_details bank[sizeOfArray]);
 int countRows();
 void sortByBalance(struct bank_custumers_details bank[sizeOfArray]);
-void writeToFile(struct bank_custumers_details bank[sizeOfArray]);
+void writeToFileSorted(struct bank_custumers_details bank[sizeOfArray]);
+void writeToFileOnly(struct bank_custumers_details bank[sizeOfArray]);
 
 int main()
 {
@@ -60,19 +59,65 @@ int main()
 
     sortByBalance(bank);
 
-    writeToFile(bank);
+    writeToFileSorted(bank);
+
+    writeToFileOnly(bank);
 
     for (int i = 2; i < sizeOfArray; i++)
     {
-        printf("%.2lf | %s | %s | %s\n", bank[i].balance, bank[i].name, bank[i].pData.address, bank[i].IBAN);
+        // printf("%s\n", bank[i].IBAN);
+        // printf("%.2lf | %s | %s | %s\n", bank[i].balance, bank[i].name, bank[i].pData.address, bank[i].IBAN);
     }
 
     return 0;
 }
 // ==============================================================================================
 // ==============================================================================================
+/**
+ * @brief write to file only found clients.
+ * 
+ * @param bank 
+ */
+void writeToFileOnly(struct bank_custumers_details bank[sizeOfArray])
+{
+    char name[20];
+    int state = 0;
 
-void writeToFile(struct bank_custumers_details bank[sizeOfArray])
+    FILE *fptr;
+
+    fptr = (fopen("Clients_Searching.txt", "w"));
+    if (fptr == NULL)
+    {
+        printf("Error!");
+        exit(1);
+    }
+
+    printf("Write name of client you searching: ");
+    scanf("%s", &name[0]);
+
+    for (int i = 2; i < sizeOfArray; i++)
+    {
+        if (!strcmp(bank[i].name, name))
+        {
+            fprintf(fptr, "===========================\nName: %s\nIBAN: %s\nBalance: %.2lf\n-------------------------\nAddress: %s\nPhone: %ld\nBirthday: %s\n===========================\n\n", bank[i].name, bank[i].IBAN, bank[i].balance, bank[i].pData.address, bank[i].pData.phone, bank[i].pData.birthday);
+
+            state++;
+        }
+    }
+    
+    fclose(fptr);
+
+    if (!state)
+        printf("No clients with this name. :(\n");
+    else
+        printf("OK!\n%d was found!\n", state);
+}
+/**
+ * @brief Write to file all clients sorted by balance
+ * 
+ * @param bank 
+ */
+void writeToFileSorted(struct bank_custumers_details bank[sizeOfArray])
 {
     char name[50];
     int mark, i, num;
@@ -85,14 +130,18 @@ void writeToFile(struct bank_custumers_details bank[sizeOfArray])
         printf("Error!");
         exit(1);
     }
-    fprintf(fptr,"Clients list sorted by balance\n\n");
+    fprintf(fptr, "Clients list sorted by balance\nClients number: %d\n\n\n", sizeOfArray - 2);
     for (i = 2; i < sizeOfArray; ++i)
     {
-        fprintf(fptr, "===========================\nName: %s\nIBAN: %s\nBalance: %lf\n-------------------------\nAddress: %s\nPhone: %ld\nBirthday: %s\n===========================\n\n", bank[i].name, bank[i].IBAN,bank[i].balance,bank[i].pData.address,bank[i].pData.phone,bank[i].pData.birthday);
+        fprintf(fptr, "===========================\nName: %s\nIBAN: %s\nBalance: %.2lf\n-------------------------\nAddress: %s\nPhone: %ld\nBirthday: %s\n===========================\n\n", bank[i].name, bank[i].IBAN, bank[i].balance, bank[i].pData.address, bank[i].pData.phone, bank[i].pData.birthday);
     }
     fclose(fptr);
 }
-
+/**
+ * @brief Sort bank array by balance
+ * 
+ * @param bank 
+ */
 void sortByBalance(struct bank_custumers_details bank[sizeOfArray])
 {
     double t_balance;
@@ -132,7 +181,11 @@ void sortByBalance(struct bank_custumers_details bank[sizeOfArray])
         }
     }
 }
-
+/**
+ * @brief Count rows(Clients) in csv file.
+ * 
+ * @return int 
+ */
 int countRows()
 {
 
@@ -160,10 +213,9 @@ int countRows()
 }
 
 /**
- * @brief 
+ * @brief Read file and collect all data to bank array
  * 
  * @param bank 
- * @return int row_count
  */
 void readFile(struct bank_custumers_details bank[sizeOfArray])
 {
