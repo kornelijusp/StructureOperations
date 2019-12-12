@@ -1,55 +1,94 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
-int main(void) {
-    FILE *fp = fopen("data1.csv", "r");
+struct personalData
+{
+    char address[100];
+    long int phone;
+    char birthday[20];
+};
+struct bank_custumers_details
+{
+    char name[20];
+    char IBAN[20];
+    double balance;
+    struct personalData pData;
+};
 
-    if (!fp) {
-        printf("Can't open file\n");
-        return 0;
+int readFile(struct bank_custumers_details bank[1000]);
+
+int main()
+{
+    int row_count;
+    struct bank_custumers_details bank[1000];
+
+    row_count = readFile(bank);
+
+
+    for (int i = 2; i <= row_count; i++)
+    {
+        printf("%s\n", bank[i].name);
     }
+
+    return 0;
+}
+
+int readFile(struct bank_custumers_details bank[1000])
+{
+    // struct bank_custumers_details bank[1000];
 
     char buf[1024];
     int row_count = 0;
     int field_count = 0;
-    while (fgets(buf, 1024, fp)) {
+
+    FILE *fp = fopen("data1.csv", "r");
+
+    if (!fp)
+    {
+        printf("Can't open file\n");
+        // return 0;
+    }
+
+    while (fgets(buf, 1024, fp))
+    {
         field_count = 0;
         row_count++;
 
-        if (row_count == 1) {
+        if (row_count == 1)
+        {
             continue;
         }
 
         char *field = strtok(buf, ",");
-        while (field) {
-            if (field_count == 0) {
-                printf("First Name:\t");
+        while (field)
+        {
+            switch (field_count)
+            {
+            case 0:
+                strcpy(bank[row_count].name, field);
+                break;
+            case 1:
+                strcpy(bank[row_count].IBAN, field);
+                break;
+            case 2:
+                bank[row_count].balance = atof(field);
+                break;
+            case 3:
+                strcpy(bank[row_count].pData.address, field);
+                break;
+            case 4:
+                bank[row_count].pData.phone = atol(field);
+                break;
+            case 5:
+                strcpy(bank[row_count].pData.birthday, field);
+                break;
             }
-            if (field_count == 1) {
-                printf("Account number:\t");
-            }
-            if (field_count == 2) {
-                    printf("Balance:\t");
-            }
-            if (field_count == 3) {
-                printf("Address:\t");
-            }
-            if (field_count == 4) {
-                printf("Phone:\t");
-            }
-            if (field_count == 5) {
-                printf("Birthday:\t");
-            }
-
-            printf("%s\n", field);
             field = strtok(NULL, ",");
 
             field_count++;
         }
-        printf("\n");
     }
-
     fclose(fp);
-
-    return 0;
+    return row_count;
 }
